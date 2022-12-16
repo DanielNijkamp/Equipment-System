@@ -6,14 +6,20 @@ using UnityEngine.Events;
 
 public class Inventory : MonoBehaviour
 {
-    /*private UI ui;
-    private List<Item> inventory = new List<Item>();
-
+    private UI ui;
+    public List<Item> inventory = new List<Item>();
+        
+    [Serializable]private struct ItemData
+    {
+        [field: SerializeField] private string name;
+        [field: SerializeField] private Sprite itemIcon;
+    }
+    
     private void Start()
     {
         ui = FindObjectOfType<UI>();
     }
-
+    
     public void AddToInventory(Item targetItem)
     {
         inventory.Add(targetItem);
@@ -22,7 +28,5 @@ public class Inventory : MonoBehaviour
     public void RemoveFromInventory(Item targetItem)
     {
         inventory.Remove(targetItem);
-        ui.RemoveItemUI(inventory.IndexOf(targetItem));
-        
-    }*/
+    }
 }

@@ -4,41 +4,42 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    float heading = 0;
-    public Transform cam;
-    CharacterController character;
+    [SerializeField] private Transform groundcheck;
+    [SerializeField] private float heading = 0;
+    [SerializeField] private Transform cam;
+    [SerializeField] private CharacterController character;
 
-    Vector3 camF;
-    Vector3 camR;
+    private Vector3 _camF;
+    private Vector3 _camR;
 
-    Vector2 input;
+    private Vector2 _input;
 
-    Vector3 intent;
-    Vector3 velocity;
-    Vector3 velocityXZ;
+    private Vector3 _intent;
+    private Vector3 _velocity;
+    private Vector3 _velocityXZ;
 
-    public float speed = 7;
-    public float accel = 15;
-    float turnSpeed;
-    float turnSpeedLow = 5;
-    float turnSpeedHigh = 20;
+    [SerializeField] private float speed = 7;
+    [SerializeField] private float accel = 15;
+    private float _turnSpeed;
+    private float _turnSpeedLow = 5;
+    private float _turnSpeedHigh = 20;
 
-    public float jumpheight;
-    public int maxjumpcount = 3;
-    public int jumpcount;
-    float inputTimer;
+    [SerializeField] private float jumpHeight;
+    [SerializeField] private int maxjumpcount = 3;
+    [SerializeField] private int jumpcount;
+    private float _inputTimer;
 
-    public float grav = 10f;
-    public bool grounded = false;
-    public bool isjumping = false;
+    [SerializeField] private float grav = 10f;
+    [SerializeField] private bool grounded = false;
+    [SerializeField] private bool isJumping = false;
     private void Start()
     {
-        inputTimer = 0;
+        _inputTimer = 0;
         character = GetComponent<CharacterController>();
     }
-    void Update()
+    private void Update()
     {
-        inputTimer += Time.deltaTime;
+        _inputTimer += Time.deltaTime;
         DoInput();
         CalculateCamera();
         CalculateGround();
@@ -46,117 +47,100 @@ public class PlayerMovement : MonoBehaviour
         DoGravity();
         DoJump();
 
-        character.Move(velocity * Time.deltaTime);
+        character.Move(_velocity * Time.deltaTime);
 
-        if (inputTimer >= 2)
+        if (_inputTimer >= 2)
         {
             jumpcount = 0;
         }
     }
 
-    void DoInput()
+    private void DoInput()
     {
         heading += Input.GetAxis("Mouse X") * Time.deltaTime * 180;
 
-        input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        input = Vector2.ClampMagnitude(input, 1);
+        _input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        _input = Vector2.ClampMagnitude(_input, 1);
     }
-    void DoMove()
+    private void DoMove()
     {
-        intent = camF * input.y + camR * input.x;
-        float ts = velocity.magnitude / 5;
-        turnSpeed = Mathf.Lerp(turnSpeedHigh, turnSpeedLow, ts);
-        if (input.magnitude > 0)
+        _intent = _camF * _input.y + _camR * _input.x;
+        float ts = _velocity.magnitude / 5;
+        _turnSpeed = Mathf.Lerp(_turnSpeedHigh, _turnSpeedLow, ts);
+        if (_input.magnitude > 0)
         {
-            Quaternion rot = Quaternion.LookRotation(intent);
-            transform.rotation = Quaternion.Lerp(transform.rotation, rot, turnSpeed * Time.deltaTime);
+            Quaternion rot = Quaternion.LookRotation(_intent);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rot, _turnSpeed * Time.deltaTime);
         }
 
-        velocityXZ = velocity;
-        velocityXZ.y = 0;
-        velocityXZ = Vector3.Lerp(velocityXZ, transform.forward * input.magnitude * speed, accel * Time.deltaTime);
-        velocity = new Vector3(velocityXZ.x, velocity.y, velocityXZ.z);
+        _velocityXZ = _velocity;
+        _velocityXZ.y = 0;
+        _velocityXZ = Vector3.Lerp(_velocityXZ, transform.forward * _input.magnitude * speed, accel * Time.deltaTime);
+        _velocity = new Vector3(_velocityXZ.x, _velocity.y, _velocityXZ.z);
 
 
     }
-    void CalculateCamera()
+    private void CalculateCamera()
     {
-        camF = cam.forward;
-        camR = cam.right;
+        _camF = cam.forward;
+        _camR = cam.right;
 
-        camF.y = 0;
-        camR.y = 0;
-        camF = camF.normalized;
-        camR = camR.normalized;
+        _camF.y = 0;
+        _camR.y = 0;
+        _camF = _camF.normalized;
+        _camR = _camR.normalized;
     }
-    void CalculateGround()
+    private void CalculateGround()
     {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position + Vector3.up * 0.1f, -Vector3.up, out hit, 1.7f))
-        {
-            grounded = true;
-        }
-        else
-        {
-            grounded = false;
-        }
+        grounded = Physics.Raycast(groundcheck.transform.position, Vector3.down, out _, 0.1f);
     }
-    void DoGravity()
+    private void DoGravity()
     {
         if (grounded)
         {
-            if (!isjumping)
+            if (!isJumping)
             {
-                velocity.y = -0.5f;
+                _velocity.y = -0.5f;
             }
         }
         else
         {
-            velocity.y -= grav * Time.deltaTime;
+            _velocity.y -= grav * Time.deltaTime;
         }
-        velocity.y = Mathf.Clamp(velocity.y, -10, 20);
     }
-    void DoJump()
+    private void DoJump()
     {
         if (grounded)
         {
             if (Input.GetButtonDown("Jump"))
             {
-                inputTimer = 0;
+                _inputTimer = 0;
                 jumpcount++;
-                StartCoroutine(jumpCooldown());
-                Debug.Log(jumpcount);
+                StartCoroutine(JumpCooldown());
             }
 
         }
-        if (isjumping)
+        if (isJumping)
         {
             if (jumpcount == 1)
             {
-                velocity.y = jumpheight;
+                _velocity.y = jumpHeight;
             }
             else if (jumpcount == 2)
             {
-                velocity.y = jumpheight + 2;
+                _velocity.y = jumpHeight + 2;
             }
             else if (jumpcount == maxjumpcount)
             {
-                velocity.y = jumpheight + 5;
+                _velocity.y = jumpHeight + 5;
                 jumpcount = 0;
             }
         }
     }
-    IEnumerator jumpCooldown()
+    private IEnumerator JumpCooldown()
     {
-        isjumping = true;
-        if (jumpcount < maxjumpcount)
-        {
-            yield return new WaitForSecondsRealtime(0.1f);
-        }
-        else if (jumpcount == maxjumpcount)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-        isjumping = false;
+        isJumping = true;
+        yield return new WaitForSeconds(0.1f);
+        isJumping = false;
     }
 }
