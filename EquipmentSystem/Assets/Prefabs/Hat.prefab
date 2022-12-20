@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 88bbf774a5d069546a6b90cb2e40f71b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -193,7 +193,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a1135024e16979446a54171f374e261e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -277,7 +277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Hat
-  <Icon>k__BackingField: {fileID: 21300000, guid: 7f854f490da24e54f9e8383e446b5d81, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 15825765386e194499ad96859a89b374, type: 3}
   <itemcollider>k__BackingField: {fileID: 7579415257913534598}
 --- !u!54 &710568067930460347
 Rigidbody:

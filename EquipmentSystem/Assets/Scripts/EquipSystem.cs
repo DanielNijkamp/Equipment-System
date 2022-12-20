@@ -8,7 +8,6 @@ using UnityEngine.Events;
 public class EquipSystem : MonoBehaviour
 {
     [SerializeField] private Transform dropPoint;
-    public GameObject prefab;
     private UI _ui;
     private Inventory _inventory;
     [Serializable]private struct BodyPoint
@@ -18,96 +17,132 @@ public class EquipSystem : MonoBehaviour
         [field: SerializeField] public GameObject EquippedItem { get; set;}
     }
     [SerializeField] private BodyPoint[] bodyPoints;
-    
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F)) // interact left hand
+        {
+            InteractWithItem(0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.G)) // interact with right hand
+        {
+            InteractWithItem(1);
+        }
+
+        if (Input.GetKey(KeyCode.Q)) //drop current item
+        {
+            if (bodyPoints.Length <= _ui.currentItem) return;
+            if (bodyPoints[_ui.currentItem].EquippedItem == null) return;
+            Drop();
+        }
+    }
+
+    private void InteractWithItem(int s)
+    {
+        if (bodyPoints.Length <= s) return;
+        if (bodyPoints[s].EquippedItem == null) return;
+        if (bodyPoints[s].EquippedItem.GetComponent<Item>() is IInteractable interactable) // current item
+        {
+            interactable.Interact();
+        }
+    }
+
     private void Start()
     {
         _ui = FindObjectOfType<UI>();
         _inventory = FindObjectOfType<Inventory>();
     }
-    public void DeAquip()
+    public IEnumerator Drop()
     {
-        try
-        {
-            StartCoroutine(DropItem());
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            print("Item is not in inventory");
-        }
-        
-    }
-    
-    public void Drop()
-    {
-        DeAquip();
-    }
-    public IEnumerator DropItem()
-    {
-        var indexOfObj = _ui._itemholders[_ui.currentItem];
-        var targetObj = indexOfObj.itemreference;
-        if (targetObj == null)
+        // get item from item holder reference and search it in inventory
+        var item = _ui._itemholders[_ui.currentItem].itemreference;
+        if (item == null)
         {
             print("What are you even dropping?");
             yield break;
         }
-        var index = Array.IndexOf(_inventory.inventory.ToArray(), targetObj);
         _ui.SetItemHolderColor(_ui.currentItem, 3);
         _ui.RemoveItemUI(_ui.currentItem);
-        targetObj.transform.parent = null;
-        _inventory.RemoveFromInventory(targetObj);
-        targetObj.transform.position = dropPoint.position;
-        yield return new WaitForSeconds(1f);
-        targetObj.itemcollider.enabled = true;
+        item.transform.parent = null;
         
-        // update body point
+        _inventory.RemoveFromInventory(item);
+        
+        item.transform.position = dropPoint.position; 
+        
         var l = bodyPoints.Length;
         for (int i = 0; i < l; i++)
         {
-            if (bodyPoints[i].EquippedItem == targetObj.gameObject)
-            {
-                bodyPoints[i].Occupied = false;
-                bodyPoints[i].EquippedItem = null;
-                yield break;
-            }
-        }
+            if (bodyPoints[i].EquippedItem != item.gameObject) continue;
+            bodyPoints[i].Occupied = false;
+            bodyPoints[i].EquippedItem = null;
+        }// position
+
+        yield return new WaitForSeconds(0.5f);
+        item.itemcollider.enabled = true;
     }
-    public void Equip(int invIndex, int bodyType)
+    public IEnumerator DropSpecific(Item item)
     {
+        // ipv item zelf item refence veranderen
+        var uiIndex = Array.FindIndex(_ui._itemholders, s => s.itemreference == item);
+        //var uiItem = _ui.currentItem;
+        
+        var uIitem = _ui._itemholders[uiIndex].itemreference;
+            
+        _ui.RemoveItemUI(uiIndex);
+        _ui.SetItemHolderColor(uiIndex, 3);
+        _inventory.RemoveFromInventory(uIitem);
+        
+        item.transform.parent = null;
+        
+        var l = bodyPoints.Length;
+        for (int i = 0; i < l; i++)
+        {
+            if (bodyPoints[i].EquippedItem != item.gameObject) continue;
+            bodyPoints[i].Occupied = false;
+            bodyPoints[i].EquippedItem = null;
+        }// position
+
+        yield return new WaitForSeconds(0.5f);
+        item.itemcollider.enabled = true;
+    }
+    public void Equip(int bodyType)
+    {
+        var item = _ui._itemholders[_ui.currentItem].itemreference;
         if (bodyPoints[bodyType].Occupied) return;
         if (_inventory.inventory == null || _inventory.inventory.Count == 0)
         {
             print("Nothing inside inventory");
             return;
         }
-        Transform bodytransform = null;
-        int index = 0;
-        switch (bodyType)
+        if (_ui.currentItem >= _inventory.inventory.Count) return;
+        if (_ui._itemholders[_ui.currentItem].itemreference == null) return;
+        
+        //check IEquiped and equip to head, else equip to either left or right hand
+        if (_inventory.inventory[_ui.currentItem] is IEquipable)
         {
-            case 0:
-                bodytransform = bodyPoints[0].Transform;
-                index = 0;
-                bodyPoints[0].Occupied = true;
-                break;
-            case 1:
-                bodytransform = bodyPoints[1].Transform;
-                index = 1;
-                bodyPoints[1].Occupied = true;
-                break;
-            case 2:
-                bodytransform = bodyPoints[2].Transform;
-                index = 2;
-                bodyPoints[2].Occupied = true;
-                break;
-        } // get body type
+            bodyType = 2;
+        }
+        
+        
+        Transform bodytransform = null;
+        bodytransform = bodyPoints[bodyType].Transform;
+        bodyPoints[bodyType].Occupied = true; //  set item to bodypoint and set to occupied
+        
         // check if item is equipable
+        var parent = GameObject.FindGameObjectWithTag("Player"); // naar field verplaatsen
+        
+        //pak ipv item in inventory de item via UI
+        //var invItem = _inventory.inventory[_ui.currentItem];
 
-        var parent = GameObject.FindGameObjectWithTag("Player"); 
-        var newobject =  _inventory.inventory[invIndex];
-        var pos = newobject.transform;
+        var uiItem = Array.Find(_ui._itemholders, s => s.itemreference.GetInstanceID() == item.GetInstanceID()).itemreference;
+        
+        var pos = uiItem.transform;
         pos.position = bodytransform.position;
         pos.parent = parent.transform;
-        bodyPoints[index].EquippedItem = newobject.gameObject; // attach to player
-        //newobject.IsEquipped = (true, parent);
-        _ui.SetItemHolderColor(invIndex, bodyType);
+        pos.rotation = parent.transform.rotation;
+        
+        bodyPoints[bodyType].EquippedItem = uiItem.gameObject; // attach to player
+        _ui.SetItemHolderColor(_ui.currentItem, bodyType); // set item color
     }
 }

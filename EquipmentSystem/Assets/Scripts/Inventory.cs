@@ -8,12 +8,6 @@ public class Inventory : MonoBehaviour
 {
     private UI ui;
     public List<Item> inventory = new List<Item>();
-        
-    [Serializable]private struct ItemData
-    {
-        [field: SerializeField] private string name;
-        [field: SerializeField] private Sprite itemIcon;
-    }
     
     private void Start()
     {

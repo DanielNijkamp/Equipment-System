@@ -120,20 +120,23 @@ public class PlayerMovement : MonoBehaviour
             }
 
         }
-        if (isJumping)
+        if (!isJumping) return;
+        switch (jumpcount)
         {
-            if (jumpcount == 1)
-            {
+            case 1:
                 _velocity.y = jumpHeight;
-            }
-            else if (jumpcount == 2)
-            {
+                break;
+            case 2:
                 _velocity.y = jumpHeight + 2;
-            }
-            else if (jumpcount == maxjumpcount)
+                break;
+            default:
             {
-                _velocity.y = jumpHeight + 5;
-                jumpcount = 0;
+                if (jumpcount == maxjumpcount)
+                {
+                    _velocity.y = jumpHeight + 5;
+                    jumpcount = 0;
+                }
+                break;
             }
         }
     }

@@ -16,7 +16,6 @@ public class UI : MonoBehaviour
     
     
     [SerializeField]private GameObject UIObject;
-    [SerializeField]private GameObject ItemHolder;
 
     //[SerializeField] private List<GameObject> itemholders;
     public int currentItem;
@@ -28,13 +27,11 @@ public class UI : MonoBehaviour
         public Button Button;
         public Itemholder Itemholder;
     }
-
     [SerializeField] private Color[] _colors;
     [SerializeField] public ItemHolders[] _itemholders;
     
     //public List<Button> buttons = new List<Button>();
-    private readonly KeyCode[] _inputList = new KeyCode[]
-    {
+    private readonly KeyCode[] _inputList = new KeyCode[]{
         KeyCode.Alpha1,
         KeyCode.Alpha2,
         KeyCode.Alpha3,
@@ -63,6 +60,18 @@ public class UI : MonoBehaviour
         InputUpdate();
     }
 
+    public void CheckItemToEquip()
+    {
+        if (_inventory.inventory.Count <= currentItem || _inventory.inventory == null) return;
+        if (_inventory.inventory[currentItem] is IEquipable)
+        {
+            Equip(2);
+        }
+        else
+        {
+            SwitchDropdown();
+        }
+    }
     private void InputUpdate()
     {
         if (!Input.anyKeyDown)
@@ -118,10 +127,16 @@ public class UI : MonoBehaviour
         currentItem = index;
         UpdateOutline();
     }
+
+    public void Drop()
+    {
+        StartCoroutine(_equipSystem.Drop());
+    }
     public void UpdateOutline()
     {
         itemOutline.transform.position = _itemholders[currentItem].Button.transform.position;
     }
+    // check if current item has equippable interface and if so equip only to head else let dropdown choose between arms
     public void SwitchDropdown()
     {
         dropdown.RefreshShownValue();
@@ -129,10 +144,12 @@ public class UI : MonoBehaviour
     }
     public void Equip()
     {
-        SwitchDropdown();
-        _equipSystem.Equip(currentItem, dropdown.value);
+        _equipSystem.Equip(dropdown.value);
     }
-    
+    public void Equip(int bodytype)
+    {
+        _equipSystem.Equip(bodytype);
+    }
     public void CreateItemUI(Item targetItem)
     {
         var l = _itemholders.Length;
