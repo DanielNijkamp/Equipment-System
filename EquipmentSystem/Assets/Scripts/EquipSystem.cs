@@ -124,7 +124,6 @@ public class EquipSystem : MonoBehaviour
             bodyType = 2;
         }
         
-        
         Transform bodytransform = null;
         bodytransform = bodyPoints[bodyType].Transform;
         bodyPoints[bodyType].Occupied = true; //  set item to bodypoint and set to occupied
